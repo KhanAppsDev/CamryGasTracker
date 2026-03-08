@@ -3,402 +3,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Camry Fuel Log</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>Vehicle Ledger & Insights</title>
     <style>
-        :root {
-            --bg: #0e0e10;
-            --card: #16161a;
-            --accent: #4ade80;
-            --text: #e4e4e7;
-            --text-dim: #a1a1aa;
-            --glass: rgba(255, 255, 255, 0.03);
-            --border: rgba(255, 255, 255, 0.1);
-        }
-
-        * { box-sizing: border-box; transition: all 0.2s ease; }
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'Inter', system-ui, sans-serif;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .container { max-width: 1000px; width: 100%; }
-
-        /* Header & Car Animation */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 2rem 0;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-
-        .car-container { width: 200px; }
-        #camry-svg { width: 100%; height: auto; }
-        .wheel { animation: spin 2s linear infinite; transform-origin: center; transform-box: fill-box; }
-        .headlight { animation: glow 2s ease-in-out infinite alternate; fill: #fff; opacity: 0.5; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes glow { from { filter: blur(2px); opacity: 0.4; } to { filter: blur(6px); opacity: 0.9; } }
-
-        /* Stats Grid */
-        .stats-summary {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            width: 100%;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            padding: 1.5rem;
-            border-radius: 12px;
-            text-align: center;
-            backdrop-filter: blur(10px);
-        }
-
-        .stat-value { color: var(--accent); font-size: 1.5rem; font-weight: 600; display: block; }
-        .stat-label { color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
-
-        /* Input Area */
-        .glass-panel {
-            background: var(--glass);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            width: 100%;
-        }
-
-        textarea {
-            width: 100%;
-            height: 150px;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: #4ade80;
-            font-family: monospace;
-            padding: 15px;
-            margin-bottom: 15px;
-            resize: vertical;
-        }
-
-        button {
-            background: var(--accent);
-            color: #064e3b;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        button:hover { opacity: 0.9; transform: translateY(-1px); }
-        .btn-outline { background: transparent; border: 1px solid var(--accent); color: var(--accent); margin-left: 10px;}
-
-        /* Charts */
-        .charts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-            gap: 20px;
-            margin-bottom: 2rem;
-        }
-        @media (max-width: 600px) { .charts-grid { grid-template-columns: 1fr; } }
-
-        .chart-container {
-            background: var(--card);
-            padding: 20px;
-            border-radius: 12px;
-            height: 300px;
-            position: relative;
-        }
-
-        /* Timeline */
-        .timeline {
-            max-height: 400px;
-            overflow-y: auto;
-            padding-right: 10px;
-        }
-        .timeline-item {
-            display: flex;
-            align-items: center;
-            padding: 12px;
-            border-left: 2px solid var(--accent);
-            background: var(--glass);
-            margin-bottom: 8px;
-            border-radius: 0 8px 8px 0;
-        }
-        .timeline-icon { margin-right: 15px; font-size: 1.2rem; }
-        .timeline-info { flex-grow: 1; }
-        .timeline-date { font-size: 0.8rem; color: var(--text-dim); }
-
-        /* Notes & Drilldown */
+        :root { --primary: #2563eb; --bg: #f8fafc; --card: #ffffff; }
+        body { font-family: system-ui, sans-serif; background: var(--bg); padding: 20px; color: #1e293b; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .card { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .year-card { cursor: pointer; border: 2px solid transparent; transition: 0.2s; text-align: center; padding: 15px; background: #eff6ff; border-radius: 8px; }
+        .year-card:hover { border-color: var(--primary); }
         .hidden { display: none; }
-        .breadcrumb { cursor: pointer; color: var(--accent); margin-bottom: 15px; display: inline-block; }
+        button { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #e2e8f0; }
+        input, select { padding: 8px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+        .stats-hero { font-size: 0.9rem; color: #64748b; margin-top: 5px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header>
-        <div>
-            <h1 style="margin:0; font-weight:300;">Camry <span style="color:var(--accent); font-weight:600;">Fuel Log</span></h1>
-            <p style="color:var(--text-dim); margin-top:5px;">2013 Toyota Camry LE (Green)</p>
-        </div>
-        <div class="car-container">
-            <svg id="camry-svg" viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <radialGradient id="headlight-glow" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stop-color="#fff" stop-opacity="1"/>
-                        <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
-                    </radialGradient>
-                </defs>
-                <path d="M20,55 L30,35 Q45,25 80,22 L140,22 Q170,25 185,45 L190,55 L20,55" fill="#2d5a27" />
-                <path d="M40,35 L75,26 L120,26 L145,35 Z" fill="#1a1a1a" /> <circle class="headlight" cx="185" cy="45" r="4" fill="url(#headlight-glow)" />
-                <g class="wheel">
-                    <circle cx="50" cy="55" r="12" fill="#111" />
-                    <circle cx="50" cy="55" r="8" fill="#333" />
-                    <rect x="42" y="54" width="16" height="2" fill="#555" />
-                </g>
-                <g class="wheel">
-                    <circle cx="150" cy="55" r="12" fill="#111" />
-                    <circle cx="150" cy="55" r="8" fill="#333" />
-                    <rect x="142" y="54" width="16" height="2" fill="#555" />
-                </g>
-                <line x1="10" y1="68" x2="190" y2="68" stroke="var(--border)" stroke-width="1" />
-            </svg>
-        </div>
-    </header>
+    <h2>🚗 Vehicle Ledger</h2>
 
-    <div class="stats-summary" id="top-stats">
-        <div class="stat-card"><span class="stat-value" id="stat-mpg">-</span><span class="stat-label">Lifetime MPG</span></div>
-        <div class="stat-card"><span class="stat-value" id="stat-miles">-</span><span class="stat-label">Total Miles</span></div>
-        <div class="stat-card"><span class="stat-value" id="stat-gallons">-</span><span class="stat-label">Total Gallons</span></div>
-        <div class="stat-card"><span class="stat-value" id="stat-cost">-</span><span class="stat-label">Total Spent</span></div>
+    <div class="card">
+        <h3>Add Entry</h3>
+        <form id="dataForm" class="grid">
+            <input type="date" id="date" required>
+            <input type="number" id="odometer" placeholder="Odometer" required>
+            <input type="number" step="0.01" id="cost" placeholder="Cost ($)" required>
+            <input type="number" step="0.01" id="gallons" placeholder="Gallons (0 for Oil Change)">
+            <select id="type">
+                <option value="gas">Gas Fill-up</option>
+                <option value="oil">Oil Change</option>
+            </select>
+            <button type="submit">Save Entry</button>
+        </form>
     </div>
 
-    <div class="glass-panel">
-        <textarea id="logInput" placeholder="Paste your logs here...">
-$26 August 28th 2024 12 gal
-$24 March 24th 2024 7.365 gal
-84036 March 24th 2024 oil change
-Air filled tires
-$40.32 Jan 10th 2024 11.861 gal
-99180 February 14th 2025 $27.03 10.014 gal
-100100 March 5th 2025 $35.00 11.5 gal premium gas</textarea>
-        <button onclick="processData()">Parse Data</button>
-        <button class="btn-outline" onclick="exportJSON()">Export JSON</button>
-    </div>
-
-    <div id="dashboard" class="hidden">
-        <div id="view-controls">
-            <span id="breadcrumb" class="breadcrumb" onclick="resetZoom()">View: All Years</span>
+    <div class="card">
+        <div style="display: flex; gap: 10px;">
+            <button onclick="showYearly()">Years at a Glance</button>
+            <button onclick="showMaintenance()">Oil Change History</button>
+        </div>
+        
+        <div id="view-yearly">
+            <h3>Select a Year</h3>
+            <div id="year-grid" class="grid"></div>
         </div>
 
-        <div class="charts-grid">
-            <div class="chart-container"><canvas id="chart-main"></canvas></div>
-            <div class="chart-container"><canvas id="chart-price"></canvas></div>
-            <div class="chart-container"><canvas id="chart-mpg"></canvas></div>
-            <div class="chart-container"><canvas id="chart-scatter"></canvas></div>
+        <div id="view-monthly" class="hidden">
+            <button onclick="showYearly()" style="background:#64748b">← Back to Years</button>
+            <h3 id="selected-year-title"></h3>
+            <table id="month-table">
+                <thead>
+                    <tr><th>Month</th><th>Spent</th><th>Miles Driven</th><th>Avg Days Between Gas</th></tr>
+                </thead>
+                <tbody id="month-body"></tbody>
+            </table>
         </div>
 
-        <div class="charts-grid">
-            <div class="glass-panel" style="margin:0;">
-                <h3 style="margin-top:0">Event Timeline</h3>
-                <div class="timeline" id="timeline"></div>
-            </div>
-            <div class="glass-panel" style="margin:0;">
-                <h3 style="margin-top:0">Notes & Insights</h3>
-                <ul id="notes-list" style="list-style: none; padding:0; font-size: 0.9rem; color: var(--text-dim);"></ul>
-            </div>
+        <div id="view-maintenance" class="hidden">
+            <h3>Maintenance Logs</h3>
+            <table id="oil-table">
+                <thead>
+                    <tr><th>Date</th><th>Odometer</th><th>Cost</th></tr>
+                </thead>
+                <tbody id="oil-body"></tbody>
+            </table>
         </div>
     </div>
 </div>
 
 <script>
-    let rawData = [];
-    let charts = {};
-    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    // 1. YOUR HISTORICAL DATA (Bake your data here)
+    const historicalData = [
+        { date: "2023-12-01", odometer: 10000, cost: 45.00, gallons: 12.0, type: "gas" },
+        { date: "2023-12-15", odometer: 10350, cost: 42.00, gallons: 11.5, type: "gas" },
+        { date: "2024-01-05", odometer: 10700, cost: 50.00, gallons: 13.0, type: "gas" },
+        { date: "2024-01-20", odometer: 11050, cost: 85.00, gallons: 0, type: "oil" }
+    ];
 
-    window.onload = () => {
-        const saved = localStorage.getItem('camry_logs');
-        if (saved) {
-            document.getElementById('logInput').value = saved;
-            processData();
-        }
+    // 2. DATA MANAGEMENT logic
+    function getFullData() {
+        const localData = JSON.parse(localStorage.getItem('vehicle_logs')) || [];
+        return [...historicalData, ...localData].sort((a, b) => new Date(a.date) - new Date(b.date));
+    }
+
+    document.getElementById('dataForm').onsubmit = (e) => {
+        e.preventDefault();
+        const newEntry = {
+            date: document.getElementById('date').value,
+            odometer: parseFloat(document.getElementById('odometer').value),
+            cost: parseFloat(document.getElementById('cost').value),
+            gallons: parseFloat(document.getElementById('gallons').value) || 0,
+            type: document.getElementById('type').value
+        };
+        const localData = JSON.parse(localStorage.getItem('vehicle_logs')) || [];
+        localData.push(newEntry);
+        localStorage.setItem('vehicle_logs', JSON.stringify(localData));
+        location.reload();
     };
 
-    function processData() {
-        const text = document.getElementById('logInput').value;
-        localStorage.setItem('camry_logs', text);
-        const lines = text.split('\n');
-        rawData = [];
-
-        lines.forEach(line => {
-            if (!line.trim()) return;
-
-            // Regex suite
-            const costMatch = line.match(/\$(\d+(\.\d+)?)/);
-            const galMatch = line.match(/(\d+(\.\d+)?)\s*gal/i);
-            const odoMatch = line.match(/^\s*(\d{5,6})/);
-            const monthMatch = line.match(new RegExp(months.join('|'), 'i'));
-            const dayMatch = line.match(/(\d+)(st|nd|rd|th)?/);
-            const yearMatch = line.match(/(20\d{2})/);
-
-            const entry = {
-                cost: costMatch ? parseFloat(costMatch[1]) : null,
-                gallons: galMatch ? parseFloat(galMatch[1]) : null,
-                odometer: odoMatch ? parseInt(odoMatch[1]) : null,
-                month: monthMatch ? months.findIndex(m => m.toLowerCase() === monthMatch[0].toLowerCase()) : 0,
-                day: dayMatch ? parseInt(dayMatch[1]) : 1,
-                year: yearMatch ? parseInt(yearMatch[1]) : new Date().getFullYear(),
-                notes: line.replace(/\$\d+(\.\d+)?/g, '').replace(/\d+(\.\d+)?\s*gal/i, '').replace(/^\d{5,6}/, '').trim(),
-                isFuel: !!(costMatch && galMatch)
-            };
-            
-            entry.date = new Date(entry.year, entry.month, entry.day);
-            if(entry.isFuel) entry.ppg = entry.cost / entry.gallons;
-            
-            rawData.push(entry);
-        });
-
-        // Sort by date
-        rawData.sort((a, b) => a.date - b.date);
-
-        // Calculate MPG
-        for (let i = 1; i < rawData.length; i++) {
-            if (rawData[i].isFuel && rawData[i].odometer && rawData[i-1].odometer) {
-                const miles = rawData[i].odometer - rawData[i-1].odometer;
-                rawData[i].mpg = miles / rawData[i].gallons;
-            }
+    // 3. CALCULATIONS
+    function calculateDaysBetween(entries) {
+        if (entries.length < 2) return "N/A";
+        let totalDays = 0;
+        for (let i = 1; i < entries.length; i++) {
+            const diff = new Date(entries[i].date) - new Date(entries[i-1].date);
+            totalDays += diff / (1000 * 60 * 60 * 24);
         }
-
-        updateStats();
-        buildDashboard();
-        document.getElementById('dashboard').classList.remove('hidden');
+        return (totalDays / (entries.length - 1)).toFixed(1) + " days";
     }
 
-    function updateStats() {
-        const fuels = rawData.filter(d => d.isFuel);
-        const totalGallons = fuels.reduce((s, c) => s + c.gallons, 0);
-        const totalCost = fuels.reduce((s, c) => s + c.cost, 0);
-        const mpgs = fuels.filter(d => d.mpg).map(d => d.mpg);
-        const avgMpg = mpgs.length ? (mpgs.reduce((a,b) => a+b, 0) / mpgs.length).toFixed(1) : '0';
-        
-        document.getElementById('stat-mpg').innerText = avgMpg;
-        document.getElementById('stat-gallons').innerText = totalGallons.toFixed(1);
-        document.getElementById('stat-cost').innerText = `$${totalCost.toFixed(2)}`;
-        
-        const odos = rawData.filter(d => d.odometer).map(d => d.odometer);
-        if(odos.length > 1) {
-            document.getElementById('stat-miles').innerText = (Math.max(...odos) - Math.min(...odos)).toLocaleString();
-        }
-    }
+    // 4. RENDERING VIEWS
+    function showYearly() {
+        switchView('view-yearly');
+        const data = getFullData();
+        const years = [...new Set(data.map(d => d.date.split('-')[0]))];
+        const grid = document.getElementById('year-grid');
+        grid.innerHTML = '';
 
-    function buildDashboard(yearFilter = null) {
-        const filtered = yearFilter ? rawData.filter(d => d.year === yearFilter) : rawData;
-        const fuels = filtered.filter(d => d.isFuel);
-
-        buildTimeline(filtered);
-        buildNotes(filtered);
-        
-        renderChart('chart-main', 'bar', {
-            labels: fuels.map(d => d.date.toLocaleDateString()),
-            datasets: [{ label: 'Gallons', data: fuels.map(d => d.gallons), backgroundColor: '#4ade80' }]
-        });
-
-        renderChart('chart-price', 'line', {
-            labels: fuels.map(d => d.date.toLocaleDateString()),
-            datasets: [{ label: 'Price Per Gallon', data: fuels.map(d => d.ppg), borderColor: '#4ade80', tension: 0.3 }]
-        });
-
-        renderChart('chart-mpg', 'line', {
-            labels: fuels.filter(d => d.mpg).map(d => d.date.toLocaleDateString()),
-            datasets: [{ label: 'Calculated MPG', data: fuels.filter(d => d.mpg).map(d => d.mpg), borderColor: '#fbbf24', tension: 0.3 }]
-        });
-
-        renderChart('chart-scatter', 'scatter', {
-            datasets: [{
-                label: 'Cost vs Gallons',
-                data: fuels.map(d => ({x: d.gallons, y: d.cost})),
-                backgroundColor: '#4ade80'
-            }]
-        });
-    }
-
-    function renderChart(id, type, data) {
-        if (charts[id]) charts[id].destroy();
-        const ctx = document.getElementById(id).getContext('2d');
-        charts[id] = new Chart(ctx, {
-            type: type,
-            data: data,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { labels: { color: '#a1a1aa' } } },
-                scales: {
-                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a1a1aa' } },
-                    x: { grid: { display: false }, ticks: { color: '#a1a1aa' } }
-                }
-            }
-        });
-    }
-
-    function buildTimeline(data) {
-        const container = document.getElementById('timeline');
-        container.innerHTML = '';
-        data.slice().reverse().forEach(item => {
-            let icon = '⛽';
-            if(item.notes.toLowerCase().includes('oil')) icon = '🛢';
-            if(item.notes.toLowerCase().includes('air') || item.notes.toLowerCase().includes('tire')) icon = '🛞';
-            if(item.notes.toLowerCase().includes('repair') || item.notes.toLowerCase().includes('fix')) icon = '🔧';
-
+        years.forEach(year => {
+            const yearData = data.filter(d => d.date.startsWith(year));
+            const totalSpend = yearData.reduce((sum, d) => sum + d.cost, 0);
             const div = document.createElement('div');
-            div.className = 'timeline-item';
-            div.innerHTML = `
-                <div class="timeline-icon">${icon}</div>
-                <div class="timeline-info">
-                    <div style="font-weight:600">${item.isFuel ? '$'+item.cost + ' ('+item.gallons+' gal)' : 'Service Entry'}</div>
-                    <div class="timeline-date">${item.date.toDateString()} - ${item.notes}</div>
-                </div>
-            `;
-            container.appendChild(div);
+            div.className = 'year-card';
+            div.innerHTML = `<strong>${year}</strong><div class="stats-hero">$${totalSpend.toFixed(2)} total</div>`;
+            div.onclick = () => showMonths(year);
+            grid.appendChild(div);
         });
     }
 
-    function buildNotes(data) {
-        const list = document.getElementById('notes-list');
-        list.innerHTML = '';
-        const notes = data.filter(d => d.notes.length > 2);
-        notes.forEach(n => {
-            const li = document.createElement('li');
-            li.style.marginBottom = "8px";
-            li.innerHTML = `<span style="color:var(--accent)">•</span> ${n.notes} <small>(${n.date.getFullYear()})</small>`;
-            list.appendChild(li);
+    function showMonths(year) {
+        switchView('view-monthly');
+        document.getElementById('selected-year-title').innerText = year + " Breakdown";
+        const data = getFullData().filter(d => d.date.startsWith(year));
+        const tbody = document.getElementById('month-body');
+        tbody.innerHTML = '';
+
+        for (let m = 0; m < 12; m++) {
+            const monthStr = `${year}-${String(m + 1).padStart(2, '0')}`;
+            const monthData = data.filter(d => d.date.startsWith(monthStr));
+            const gasOnly = monthData.filter(d => d.type === 'gas');
+            
+            if (monthData.length > 0) {
+                const spent = monthData.reduce((sum, d) => sum + d.cost, 0);
+                const miles = monthData.length > 1 ? (monthData[monthData.length-1].odometer - monthData[0].odometer) : 0;
+                
+                const row = `<tr>
+                    <td>${new Date(year, m).toLocaleString('default', { month: 'long' })}</td>
+                    <td>$${spent.toFixed(2)}</td>
+                    <td>${miles} mi</td>
+                    <td>${calculateDaysBetween(gasOnly)}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+            }
+        }
+    }
+
+    function showMaintenance() {
+        switchView('view-maintenance');
+        const data = getFullData().filter(d => d.type === 'oil');
+        const tbody = document.getElementById('oil-body');
+        tbody.innerHTML = data.map(d => `<tr><td>${d.date}</td><td>${d.odometer}</td><td>$${d.cost}</td></tr>`).join('');
+    }
+
+    function switchView(id) {
+        ['view-yearly', 'view-monthly', 'view-maintenance'].forEach(v => {
+            document.getElementById(v).classList.add('hidden');
         });
+        document.getElementById(id).classList.remove('hidden');
     }
 
-    function exportJSON() {
-        const blob = new Blob([JSON.stringify(rawData, null, 2)], {type: 'application/json'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'camry_fuel_data.json';
-        a.click();
-    }
-
-    function resetZoom() {
-        buildDashboard();
-        document.getElementById('breadcrumb').innerText = 'View: All Years';
-    }
+    // Init
+    showYearly();
 </script>
 
 </body>
