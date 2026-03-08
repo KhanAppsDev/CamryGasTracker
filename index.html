@@ -3,181 +3,228 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vehicle Ledger & Insights</title>
+    <title>Vehicle Ledger 2015-2026</title>
     <style>
-        :root { --primary: #2563eb; --bg: #f8fafc; --card: #ffffff; }
-        body { font-family: system-ui, sans-serif; background: var(--bg); padding: 20px; color: #1e293b; }
+        :root { --blue: #2563eb; --green: #059669; --gray: #64748b; --bg: #f8fafc; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: #1e293b; padding: 20px; line-height: 1.5; }
         .container { max-width: 900px; margin: 0 auto; }
-        .card { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 20px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
-        .year-card { cursor: pointer; border: 2px solid transparent; transition: 0.2s; text-align: center; padding: 15px; background: #eff6ff; border-radius: 8px; }
-        .year-card:hover { border-color: var(--primary); }
-        .hidden { display: none; }
-        button { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; margin-top: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .nav { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        button { padding: 10px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .btn-blue { background: var(--blue); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .btn-gray { background: var(--gray); color: white; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
+        .year-card { background: #eff6ff; border: 1px solid #dbeafe; padding: 20px; border-radius: 10px; cursor: pointer; text-align: center; }
+        .year-card:hover { border-color: var(--blue); transform: translateY(-2px); }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; }
         th, td { text-align: left; padding: 12px; border-bottom: 1px solid #e2e8f0; }
-        input, select { padding: 8px; margin: 5px 0; width: 100%; box-sizing: border-box; }
-        .stats-hero { font-size: 0.9rem; color: #64748b; margin-top: 5px; }
+        th { background: #f8fafc; color: var(--gray); text-transform: uppercase; font-size: 0.75rem; }
+        textarea { width: 100%; height: 200px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; font-family: monospace; margin: 10px 0; }
+        .hidden { display: none; }
+        .badge { padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; }
+        .badge-oil { background: #dcfce7; color: #166534; }
+        .badge-gas { background: #dbeafe; color: #1e40af; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>🚗 Vehicle Ledger</h2>
-
-    <div class="card">
-        <h3>Add Entry</h3>
-        <form id="dataForm" class="grid">
-            <input type="date" id="date" required>
-            <input type="number" id="odometer" placeholder="Odometer" required>
-            <input type="number" step="0.01" id="cost" placeholder="Cost ($)" required>
-            <input type="number" step="0.01" id="gallons" placeholder="Gallons (0 for Oil Change)">
-            <select id="type">
-                <option value="gas">Gas Fill-up</option>
-                <option value="oil">Oil Change</option>
-            </select>
-            <button type="submit">Save Entry</button>
-        </form>
+    <h1>🚗 Vehicle Insight Ledger</h1>
+    
+    <div class="nav">
+        <button class="btn-blue" onclick="showView('view-years')">Years at a Glance</button>
+        <button class="btn-green" onclick="showView('view-oil')">Oil & Maintenance</button>
+        <button class="btn-gray" onclick="showView('view-input')">Paste New Data</button>
+        <button style="background: #ef4444; color: white;" onclick="clearAll()">Clear All Data</button>
     </div>
 
-    <div class="card">
-        <div style="display: flex; gap: 10px;">
-            <button onclick="showYearly()">Years at a Glance</button>
-            <button onclick="showMaintenance()">Oil Change History</button>
-        </div>
-        
-        <div id="view-yearly">
-            <h3>Select a Year</h3>
-            <div id="year-grid" class="grid"></div>
-        </div>
+    <div id="view-input" class="card">
+        <h2>Paste Your Records</h2>
+        <p style="font-size: 0.85rem; color: var(--gray);">Paste your list (2015-2026). The parser handles "$", dates, "gal", and "@ odometer".</p>
+        <textarea id="rawInput" placeholder="Paste your notes here..."></textarea>
+        <button class="btn-blue" onclick="processData()">Sync Dashboard</button>
+    </div>
 
-        <div id="view-monthly" class="hidden">
-            <button onclick="showYearly()" style="background:#64748b">← Back to Years</button>
-            <h3 id="selected-year-title"></h3>
-            <table id="month-table">
-                <thead>
-                    <tr><th>Month</th><th>Spent</th><th>Miles Driven</th><th>Avg Days Between Gas</th></tr>
-                </thead>
-                <tbody id="month-body"></tbody>
-            </table>
-        </div>
+    <div id="view-years" class="card hidden">
+        <h2>Select a Year</h2>
+        <div id="year-grid" class="grid"></div>
+    </div>
 
-        <div id="view-maintenance" class="hidden">
-            <h3>Maintenance Logs</h3>
-            <table id="oil-table">
-                <thead>
-                    <tr><th>Date</th><th>Odometer</th><th>Cost</th></tr>
-                </thead>
-                <tbody id="oil-body"></tbody>
-            </table>
-        </div>
+    <div id="view-months" class="card hidden">
+        <button class="btn-gray" onclick="showView('view-years')" style="margin-bottom:15px;">← Back</button>
+        <h2 id="selected-year-title"></h2>
+        <table id="month-table">
+            <thead>
+                <tr><th>Month</th><th>Spent</th><th>Avg Gal</th><th>Avg Days Between</th></tr>
+            </thead>
+            <tbody id="month-body"></tbody>
+        </table>
+    </div>
+
+    <div id="view-oil" class="card hidden">
+        <h2>Maintenance History</h2>
+        <table id="oil-table">
+            <thead>
+                <tr><th>Date</th><th>Type</th><th>Odometer</th><th>Details</th></tr>
+            </thead>
+            <tbody id="oil-body"></tbody>
+        </table>
     </div>
 </div>
 
 <script>
-    // 1. YOUR HISTORICAL DATA (Bake your data here)
-    const historicalData = [
-        { date: "2023-12-01", odometer: 10000, cost: 45.00, gallons: 12.0, type: "gas" },
-        { date: "2023-12-15", odometer: 10350, cost: 42.00, gallons: 11.5, type: "gas" },
-        { date: "2024-01-05", odometer: 10700, cost: 50.00, gallons: 13.0, type: "gas" },
-        { date: "2024-01-20", odometer: 11050, cost: 85.00, gallons: 0, type: "oil" }
-    ];
+    // CORE PARSER: Handles your specific note-taking style
+    function parseInput(text) {
+        const lines = text.split('\n');
+        const entries = [];
+        let currentYear = "2015"; // Default fallback
 
-    // 2. DATA MANAGEMENT logic
-    function getFullData() {
-        const localData = JSON.parse(localStorage.getItem('vehicle_logs')) || [];
-        return [...historicalData, ...localData].sort((a, b) => new Date(a.date) - new Date(b.date));
+        lines.forEach(line => {
+            const cleanLine = line.trim();
+            if (!cleanLine) return;
+
+            // Detect Year Markers (e.g., 🎉 2016 🎉)
+            const yearMatch = cleanLine.match(/20\d{2}/);
+            if (cleanLine.includes('🎉')) {
+                currentYear = yearMatch[0];
+                return;
+            }
+
+            // Extract Cost: Looking for $XX.XX
+            const costMatch = cleanLine.match(/\$(\d+\.?\d*)/);
+            const cost = costMatch ? parseFloat(costMatch[1]) : 0;
+
+            // Extract Gallons: Looking for XX.XXX gal
+            const galMatch = cleanLine.match(/(\d+\.?\d*)\s*gal/);
+            const gallons = galMatch ? parseFloat(galMatch[1]) : 0;
+
+            // Extract Odometer: Looking for @ XXXXX or (XXXXX)
+            const odoMatch = cleanLine.match(/@\s*(\d{4,})|(\d{5,})/);
+            const odometer = odoMatch ? parseInt(odoMatch[0].replace(/[^0-9]/g, '')) : null;
+
+            // Extract Date: Searching for Month Day (e.g., August 28th)
+            const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+            let foundDate = null;
+            months.forEach((m, i) => {
+                if (cleanLine.includes(m)) {
+                    const dayMatch = cleanLine.match(/\d{1,2}/);
+                    if (dayMatch) {
+                        const day = dayMatch[0].padStart(2, '0');
+                        foundDate = `${currentYear}-${String(i + 1).padStart(2, '0')}-${day}`;
+                    }
+                }
+            });
+
+            // If no month text, check for MM/DD/YYYY format
+            if (!foundDate) {
+                const slashDate = cleanLine.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+                if (slashDate) {
+                    let y = slashDate[3].length === 2 ? "20"+slashDate[3] : slashDate[3];
+                    foundDate = `${y}-${slashDate[1].padStart(2, '0')}-${slashDate[2].padStart(2, '0')}`;
+                }
+            }
+
+            if (foundDate) {
+                entries.push({
+                    date: foundDate,
+                    cost: cost,
+                    gallons: gallons,
+                    odometer: odometer,
+                    isOil: cleanLine.toLowerCase().includes('oil'),
+                    raw: cleanLine
+                });
+            }
+        });
+        return entries.sort((a,b) => new Date(a.date) - new Date(b.date));
     }
 
-    document.getElementById('dataForm').onsubmit = (e) => {
-        e.preventDefault();
-        const newEntry = {
-            date: document.getElementById('date').value,
-            odometer: parseFloat(document.getElementById('odometer').value),
-            cost: parseFloat(document.getElementById('cost').value),
-            gallons: parseFloat(document.getElementById('gallons').value) || 0,
-            type: document.getElementById('type').value
-        };
-        const localData = JSON.parse(localStorage.getItem('vehicle_logs')) || [];
-        localData.push(newEntry);
-        localStorage.setItem('vehicle_logs', JSON.stringify(localData));
-        location.reload();
-    };
-
-    // 3. CALCULATIONS
-    function calculateDaysBetween(entries) {
-        if (entries.length < 2) return "N/A";
-        let totalDays = 0;
-        for (let i = 1; i < entries.length; i++) {
-            const diff = new Date(entries[i].date) - new Date(entries[i-1].date);
-            totalDays += diff / (1000 * 60 * 60 * 24);
-        }
-        return (totalDays / (entries.length - 1)).toFixed(1) + " days";
+    // UI LOGIC
+    function processData() {
+        const input = document.getElementById('rawInput').value;
+        const data = parseInput(input);
+        localStorage.setItem('car_ledger_data', JSON.stringify(data));
+        showView('view-years');
     }
 
-    // 4. RENDERING VIEWS
-    function showYearly() {
-        switchView('view-yearly');
-        const data = getFullData();
-        const years = [...new Set(data.map(d => d.date.split('-')[0]))];
+    function getData() {
+        return JSON.parse(localStorage.getItem('car_ledger_data')) || [];
+    }
+
+    function showView(id) {
+        document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+        if (id === 'view-years') renderYears();
+        if (id === 'view-oil') renderOil();
+    }
+
+    function renderYears() {
+        const data = getData();
+        const years = [...new Set(data.map(d => d.date.split('-')[0]))].reverse();
         const grid = document.getElementById('year-grid');
         grid.innerHTML = '';
-
-        years.forEach(year => {
-            const yearData = data.filter(d => d.date.startsWith(year));
-            const totalSpend = yearData.reduce((sum, d) => sum + d.cost, 0);
-            const div = document.createElement('div');
-            div.className = 'year-card';
-            div.innerHTML = `<strong>${year}</strong><div class="stats-hero">$${totalSpend.toFixed(2)} total</div>`;
-            div.onclick = () => showMonths(year);
-            grid.appendChild(div);
+        years.forEach(yr => {
+            const yrData = data.filter(d => d.date.startsWith(yr));
+            const total = yrData.reduce((s, d) => s + d.cost, 0);
+            grid.innerHTML += `<div class="year-card" onclick="renderMonths('${yr}')">
+                <h3>${yr}</h3>
+                <div style="color:var(--gray)">$${total.toFixed(2)}</div>
+            </div>`;
         });
     }
 
-    function showMonths(year) {
-        switchView('view-monthly');
+    function renderMonths(year) {
+        showView('view-months');
         document.getElementById('selected-year-title').innerText = year + " Breakdown";
-        const data = getFullData().filter(d => d.date.startsWith(year));
-        const tbody = document.getElementById('month-body');
-        tbody.innerHTML = '';
+        const data = getData().filter(d => d.date.startsWith(year));
+        const body = document.getElementById('month-body');
+        body.innerHTML = '';
 
         for (let m = 0; m < 12; m++) {
-            const monthStr = `${year}-${String(m + 1).padStart(2, '0')}`;
-            const monthData = data.filter(d => d.date.startsWith(monthStr));
-            const gasOnly = monthData.filter(d => d.type === 'gas');
+            const mStr = `${year}-${String(m + 1).padStart(2, '0')}`;
+            const mData = data.filter(d => d.date.startsWith(mStr));
+            if (mData.length === 0) continue;
+
+            const spent = mData.reduce((s, d) => s + d.cost, 0);
+            const avgGal = (mData.reduce((s, d) => s + d.gallons, 0) / mData.length).toFixed(1);
             
-            if (monthData.length > 0) {
-                const spent = monthData.reduce((sum, d) => sum + d.cost, 0);
-                const miles = monthData.length > 1 ? (monthData[monthData.length-1].odometer - monthData[0].odometer) : 0;
-                
-                const row = `<tr>
-                    <td>${new Date(year, m).toLocaleString('default', { month: 'long' })}</td>
-                    <td>$${spent.toFixed(2)}</td>
-                    <td>${miles} mi</td>
-                    <td>${calculateDaysBetween(gasOnly)}</td>
-                </tr>`;
-                tbody.innerHTML += row;
+            // Calc days between gas stops
+            const gas = mData.filter(d => d.gallons > 0);
+            let daysBetween = "---";
+            if (gas.length > 1) {
+                const diff = (new Date(gas[gas.length-1].date) - new Date(gas[0].date)) / (1000*60*60*24);
+                daysBetween = (diff / (gas.length - 1)).toFixed(1) + " days";
             }
+
+            body.innerHTML += `<tr>
+                <td>${new Date(year, m).toLocaleString('default', {month:'long'})}</td>
+                <td>$${spent.toFixed(2)}</td>
+                <td>${avgGal} gal</td>
+                <td>${daysBetween}</td>
+            </tr>`;
         }
     }
 
-    function showMaintenance() {
-        switchView('view-maintenance');
-        const data = getFullData().filter(d => d.type === 'oil');
-        const tbody = document.getElementById('oil-body');
-        tbody.innerHTML = data.map(d => `<tr><td>${d.date}</td><td>${d.odometer}</td><td>$${d.cost}</td></tr>`).join('');
+    function renderOil() {
+        const data = getData().filter(d => d.isOil || d.raw.toLowerCase().includes('tire') || d.raw.toLowerCase().includes('battery'));
+        const body = document.getElementById('oil-body');
+        body.innerHTML = data.reverse().map(d => `<tr>
+            <td>${d.date}</td>
+            <td><span class="badge ${d.isOil ? 'badge-oil' : 'badge-gas'}">${d.isOil ? 'OIL' : 'MAINT'}</span></td>
+            <td>${d.odometer || '---'}</td>
+            <td>${d.raw.substring(0, 50)}...</td>
+        </tr>`).join('');
     }
 
-    function switchView(id) {
-        ['view-yearly', 'view-monthly', 'view-maintenance'].forEach(v => {
-            document.getElementById(v).classList.add('hidden');
-        });
-        document.getElementById(id).classList.remove('hidden');
+    function clearAll() {
+        if(confirm("Clear all data?")) {
+            localStorage.clear();
+            location.reload();
+        }
     }
 
-    // Init
-    showYearly();
+    // Auto-load if data exists
+    if (localStorage.getItem('car_ledger_data')) showView('view-years');
 </script>
-
 </body>
 </html>
